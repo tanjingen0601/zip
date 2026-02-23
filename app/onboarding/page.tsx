@@ -4,31 +4,41 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Search, ChevronDown, BookOpen, Lightbulb } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client'; // Use CLIENT utility here!
 
 export default function OnboardingPage() {
+  const router = useRouter();
+  const supabase = createClient(); // Initialize the client-side Supabase instance
+
   const [field, setField] = useState('');
   const [level, setLevel] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // 1. Logic to save user preferences to Supabase would go here
+      // For now, we simulate a successful save
+      console.log("Saving preferences to Supabase:", { field, level });
+      
+      // 2. Redirect to the dynamic explore page based on their field
+      router.push(`/explore?interest=${encodeURIComponent(field)}&level=${level}`);
+    } catch (error) {
+      console.error("Failed to save onboarding data:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FFFDF6] relative overflow-hidden font-sans text-gray-900">
-      {/* Background Pattern and Glows */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-0 opacity-40"
-        style={{
-          backgroundImage: 'radial-gradient(#E5E5E5 1.5px, transparent 1.5px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
+      {/* Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-40 bg-[radial-gradient(#E5E5E5_1.5px,transparent_1.5px)] [background-size:24px_24px]" />
       <div className="fixed top-1/3 left-10 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-1/3 right-10 w-80 h-80 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Floating Background Icons */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <BookOpen className="absolute top-32 right-32 w-12 h-12 text-yellow-200/50 animate-[float_6s_ease-in-out_infinite] transform rotate-12" />
-        <Lightbulb className="absolute bottom-40 left-32 w-10 h-10 text-yellow-200/60 animate-[float_5s_ease-in-out_infinite_1s] transform -rotate-12" />
-      </div>
-
-      {/* Header Logo */}
       <header className="absolute top-0 left-0 w-full p-6 z-20">
         <Link href="/" className="flex items-center space-x-2 w-max">
           <div className="w-8 h-8 bg-yellow-400 rounded-md flex items-center justify-center font-bold">C</div>
@@ -36,75 +46,60 @@ export default function OnboardingPage() {
         </Link>
       </header>
 
-      {/* Main Content Centered */}
       <main className="flex-grow flex items-center justify-center px-4 py-12 relative z-10">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
           className="bg-white w-full max-w-[440px] p-8 md:p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100"
         >
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              // Handle form submission (e.g., save to database, redirect to explore)
-              console.log("Onboarding Data:", { field, level });
-            }}
-          >
-            {/* Field Input Section */}
+          <form onSubmit={handleSubmit}>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-center mb-4 text-gray-900">What is your field?</h2>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input 
                   type="text" 
                   value={field}
                   onChange={(e) => setField(e.target.value)}
                   placeholder="e.g. Data Science, Python..." 
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10 outline-none transition-all bg-white text-gray-800 placeholder:text-gray-400"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10 outline-none transition-all"
                   required
                 />
               </div>
             </div>
 
-            {/* Level Dropdown Section */}
             <div className="mb-10">
               <h2 className="text-[17px] font-bold text-center mb-4 text-gray-900">What is your current level?</h2>
               <div className="relative">
                 <select 
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10 outline-none transition-all bg-white text-gray-800 appearance-none cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10 outline-none transition-all bg-white appearance-none cursor-pointer"
                   required
                 >
-                  <option value="" disabled className="text-gray-400">Select your level</option>
+                  <option value="" disabled>Select your level</option>
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                   <option value="expert">Expert</option>
                 </select>
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                </div>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
-            {/* Submit Button */}
             <button 
               type="submit" 
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98]"
+              disabled={isSubmitting}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-200 text-gray-900 font-bold py-3.5 rounded-xl transition-all active:scale-[0.98]"
             >
-              Start
+              {isSubmitting ? 'Setting up...' : 'Start'}
             </button>
           </form>
         </motion.div>
       </main>
 
-      {/* Footer */}
       <footer className="text-center py-6 text-sm text-gray-500 border-t border-gray-100 z-10 bg-[#FFFDF6]">
-        © 2023 CariSkill Inc. All rights reserved.
+        © 2026 CariSkill Inc. All rights reserved.
       </footer>
     </div>
   );
